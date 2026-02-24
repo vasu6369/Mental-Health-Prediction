@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow p-4">
+            <h3 class="mb-3 text-center">Mental Health Prediction</h3>
+
+            <textarea id="inputText" class="form-control" rows="5"
+                      placeholder="Please enter your current mood or thought here..."></textarea>
+
+            <button class="btn btn-primary mt-3 w-100" onclick="predict()">Analyze</button>
+
+            <div id="result" class="mt-4"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function predict() {
+    const text = document.getElementById("inputText").value;
+    const result = document.getElementById("result");
+
+    result.innerHTML = "<p class='text-secondary'>Processing...</p>";
+
+    const response = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+        result.innerHTML = `<p class="text-danger">${data.message}</p>`;
+        return;
+    }
+
+    const label = data.data.label;
+    const meaning = data.data.meaning;
+    const confidence = (data.data.confidence * 100).toFixed(2);
+
+    result.innerHTML = `
+        <div class="alert alert-info">
+            <strong>Prediction:</strong> ${label} <br>
+            <strong>Meaning:</strong> ${meaning} <br>
+            <strong>Confidence:</strong> ${confidence}%
+        </div>
+    `;
+}
+</script>
+
+{% endblock %}
